@@ -53,10 +53,36 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {
+    loadSensors(url) {
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar los sensores: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(sensorsData => {
+                sensorsData.forEach(sensorData => {
+                    if (["temperature", "humidity", "pressure"].includes(sensorData.type)) {
+                        const sensor = new Sensor(
+                            sensorData.id,
+                            sensorData.name,
+                            sensorData.type,
+                            sensorData.value,
+                            sensorData.unit,
+                            sensorData.updated_at
+                        );
+                        this.addSensor(sensor);
+                    } else {
+                        console.error(`Tipo de sensor inválido: (Solo se permiten temperature, humidity y pressure) ${sensorData.type}`);
+                    }
+                });
 
-        
-
+                this.render();
+            })
+            .catch(error => {
+                console.error('Error al cargar los sensores:', error);
+            });
     }
 
     render() {
